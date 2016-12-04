@@ -1,0 +1,39 @@
+{{ ansible_managed | comment }}
+
+{% for item in postfix_master -%}
+  {% for name, value in item.iteritems() -%}
+    {{ name }}  {{ value.type + '  '}}
+    {%- if 'private' in value and value.private -%}
+      {{ 'y  ' }}
+    {%- elif 'private' in value and not value.private -%}
+      {{ 'n  ' }}
+    {%- else -%}
+      {{ '-  ' }}
+    {%- endif -%}
+    {%- if 'unpriv' in value and value.unpriv -%}
+      {{ 'y  ' }}
+    {%- elif 'unpriv' in value and not value.unpriv -%}
+      {{ 'n  ' }}
+    {%- else -%}
+      {{ '-  ' }}
+    {%- endif -%}
+    {%- if 'chroot' in value and value.chroot -%}
+      {{ 'y  ' }}
+    {%- elif 'chroot' in value and not value.chroot -%}
+      {{ 'n  ' }}
+    {%- else -%}
+      {{ '-  ' }}
+    {%- endif -%}
+    {%- if 'wakeup' in value -%}
+      {{ value.wakeup | string + '  ' }}
+    {%- else -%}
+      {{ '-  ' }}
+    {%- endif -%}
+    {%- if 'maxproc' in value -%}
+      {{ value.maxproc | string + '  ' }}
+    {%- else -%}
+      {{ '-  ' }}
+    {%- endif -%}
+    {{ value.command + '\n' }}
+  {%- endfor %}
+{% endfor %}

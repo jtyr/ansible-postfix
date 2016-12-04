@@ -1,0 +1,3 @@
+{{ ansible_managed | comment }}
+
+{{ postfix_config | encode_ini(delimiter=" = ", section_is_comment=true) }}

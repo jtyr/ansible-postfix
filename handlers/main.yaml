@@ -1,0 +1,17 @@
+---
+
+- name: Restart Postfix service
+  service:
+    name: "{{ postfix_service }}"
+    state: restarted
+  when: >
+    postfix_service_started is not defined or
+    not postfix_service_started.changed
+
+- name: Reload Postfix service
+  service:
+    name: "{{ postfix_service }}"
+    state: reloaded
+  when: >
+    postfix_service_started is not defined or
+    not postfix_service_started.changed

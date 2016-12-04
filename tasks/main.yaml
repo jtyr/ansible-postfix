@@ -1,0 +1,84 @@
+---
+
+- name: Test distribution
+  assert:
+    that: >
+      ansible_os_family == "RedHat"
+  tags:
+    - postfix_assert
+
+- name: Install Postfix
+  package:
+    name: "{{ postfix_pkg }}"
+    state: present
+  notify:
+    - Restart Postfix service
+  tags:
+    - postfix_pkg
+
+- name: Configure Postfix
+  template:
+    src: main.cf.j2
+    dest: "{{ postfix_config_file }}"
+  notify:
+    - Restart Postfix service
+  tags:
+    - postfix_config
+
+- name: Configure main Postfix config
+  template:
+    src: main.cf.j2
+    dest: "{{ postfix_config_file }}"
+  notify:
+    - Restart Postfix service
+  tags:
+    - postfix_config
+
+- name: Configure master Postfix config
+  template:
+    src: master.cf.j2
+    dest: "{{ postfix_master_file }}"
+  notify:
+    - Reload Postfix service
+  tags:
+    - postfix_config
+
+- name: Configure pattern tables
+  template:
+    src: table.j2
+    dest: "{{ postfix_config_file | dirname }}/{{ item.key }}"
+  register: postfix_table_results
+  with_dict: "{{ postfix_tables }}"
+  notify:
+    - Restart Postfix service
+  tags:
+    - postfix_config
+
+- name: Generate maps from lookup tables
+  shell: >
+    {{ postfix_postmap_cmd }} {{ item.dest }}
+  when: item.changed
+  with_items: "{{
+    postfix_table_results.results
+        if (
+            postfix_table_results is defined and
+            'results' in postfix_table_results)
+        else
+    [] }}"
+  tags:
+    - postfix_config
+
+- name: Enable Postfix service
+  service:
+    name: "{{ postfix_service }}"
+    enabled: yes
+  tags:
+    - postfix_service
+
+- name: Start Postfix service
+  service:
+    name: "{{ postfix_service }}"
+    state: running
+  register: postfix_service_started
+  tags:
+    - postfix_service
